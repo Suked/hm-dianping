@@ -70,32 +70,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
+        /** 判断邮箱格式 */
         String mail = loginForm.getPhone();
         if (RegexUtils.isEmailInvalid(mail)) {
             return Result.fail("邮箱格式错误");
         }
 
+        /** 判断验证码 */
         String code = loginForm.getCode();
         String cacheCode = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + mail);
         if (cacheCode == null || !cacheCode.equals(code)){
             return Result.fail("验证码错误");
         }
 
+        /** 查询是否有该用户，没有则创建 */
         User user = query().eq("phone", mail).one();
 
         if (user == null){
             user = createUserWithPhone(mail);
         }
 
-//        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
+
+        /** 设置token，并存储到redis */
         String token = UUID.randomUUID().toString(true);
 
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
 
+        /** stringredistemplate的key、value都是String类型，因此需要将属性都转为String */
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(), CopyOptions.create().setIgnoreNullValue(true)
                 .setFieldValueEditor((filedName, filedValue) -> filedValue.toString()));
+        /** redis储存用户的key格式为：login:token: + token，value为用户信息 */
         stringRedisTemplate.opsForHash().putAll(RedisConstants.LOGIN_USER_KEY + token, userMap);
 
+        /** 设置token过期时间 */
         stringRedisTemplate.expire(RedisConstants.LOGIN_USER_KEY + token, 30, TimeUnit.MINUTES);
         return Result.ok(token);
     }
