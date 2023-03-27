@@ -1,8 +1,12 @@
 package com.hmdp;
 
 import cn.hutool.core.util.RandomUtil;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hmdp.entity.Mail;
+import com.hmdp.entity.User;
 import com.hmdp.utils.MailUtil;
+import com.hmdp.utils.TokenUtil;
+import jdk.nashorn.internal.parser.Token;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +29,19 @@ public class HmDianPingApplicationTests {
         mail.setSubject("注册验证码");
 
         mailUtil.sendSimpleMail(mail);
+    }
+
+    @Test
+    public void tokenTest(){
+        User user = new User();
+        user.setId(1l);
+        user.setPassword("123456");
+        String token = TokenUtil.getToken(user);
+        System.out.println(token);
+
+        DecodedJWT jwt = TokenUtil.checkToken(user, token);
+        System.out.println(jwt.getHeader() + "==" +jwt.getPayload().toString() + "==" + jwt.getSignature());
+
     }
 
 }
