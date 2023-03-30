@@ -6,7 +6,6 @@ import com.hmdp.entity.Mail;
 import com.hmdp.entity.User;
 import com.hmdp.utils.MailUtil;
 import com.hmdp.utils.TokenUtil;
-import jdk.nashorn.internal.parser.Token;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
